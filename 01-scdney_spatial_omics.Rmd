@@ -618,7 +618,7 @@ imc <- runFuseSOM(imc,
 
 We can check to see how reasonable our choice of 13 clusters is using the `estimateNumCluster` and the `optiPlot` functions. Here we examine the Gap method, others such as jump, silhouette and within cluster distance are also available.
 
-```{r}
+```{r estimateClusterNumber, fig.height= 5, fig.width=5}
 imc <- estimateNumCluster(imc, kSeq = 2:30)
 optiPlot(imc, method = "gap")
 imc@metadata$clusterEstimation$Discriminant
@@ -643,7 +643,7 @@ scater::plotGroupedHeatmap(imc,
 
 Damond et al. define their cell types using a stepwise clustering procedure with manual merge of clusters. We can compare our clustering to theirs.
 
-```{r fig.width=8}
+```{r fig.width=8, fig.height=6}
 regionMap(imc, cellType = "clusters", region = "cell_type") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
@@ -664,7 +664,7 @@ colData(imc)$clusters |>
 
 Look at the distribution of cells types in an image
 
-```{r}
+```{r plotImage, , fig.height= 5, fig.width=6}
 
 reducedDim(imc, "spatialCoords") <- spatialCoords(imc)
 
@@ -724,7 +724,7 @@ topPairs(spicyTest, n = 10)
 
 We can visualise these tests using `signifPlot`.
 
-```{r}
+```{r signifPlot, fig.height= 4, fig.width=6}
 signifPlot(spicyTest,
   breaks = c(-1.5, 3, 0.5),
   cutoff = 0.0001
@@ -733,7 +733,7 @@ signifPlot(spicyTest,
 
 We can view some of the interesting relationships in images. Lets first identify images with "interesting" relationships between cluster 2 (likely T cells) with cluster 11 (likely islet cells).
 
-```{r}
+```{r violin, fig.height= 5, fig.width=5}
 
 # Sorry, this code could be made cleaner. This seems like it would be a useful function
 
@@ -751,15 +751,14 @@ df <- as.data.frame(df)
 p1 <- ggplot(df, aes(x = patient_stage, y = spatialRelationship, label = image_name)) + 
   geom_violin() + geom_jitter()
 
-p1
-
-
 # Use plotly to look for representative images
 ggplotly(p1)
 
 
 ```
 
+
+We can now plot these images using `plotReducedDim`.
 
 ```{r fig.width=10, fig.height=5}
 
@@ -830,7 +829,7 @@ regionMap(imc, cellType = "clusters", limit = c(0.2, 5))
 
 By default, these identified regions are stored in the `regions` column in the `colData` of our object. We can quickly examine the spatial arrangement of these regions using `ggplot`.
 
-```{r}
+```{r, fig.height= 4, fig.width=5}
 
 plotReducedDim(imc[, imc$image_name == "E02"], "spatialCoords", colour_by = "region")
 
@@ -838,19 +837,20 @@ plotReducedDim(imc[, imc$image_name == "E02"], "spatialCoords", colour_by = "reg
 
 While much slower, we have also implemented a function for overlaying the region information as a hatching pattern so that the information can be viewed simultaneously with the cell type calls.
 
-```{r eval = FALSE}
+```{r hatchingPlot, fig.height= 5, fig.width=6}
 # Use hatching to visualise regions and cell types.
 hatchingPlot(imc,
   imageID = "image_name",
   useImages = "E02",
   cellType = "clusters",
   spatialCoords = c("cell_x", "cell_y"),
-)
+  line.spacing = 31
+) + scale_colour_manual(values = cellTypeColour)
 ```
 
 **Visualise proportions of cells from different regions**
 
-```{r}
+```{r, fig.height= 4, fig.width=5}
 regionProp <- getProp(imc, feature = "region", imageID = "image_name")
 
 
@@ -902,7 +902,7 @@ testRegions
 
 ### Classifying patients with spatial features.
 
-Our ClassifyR package, <https://github.com/SydneyBioX/ClassifyR>, formalises a convenient framework for evaluating classification in R. We provide functionality to easily include four key modelling stages; Data transformation, feature selection, classifier training and prediction; into a cross-validation loop. Here we use the `crossValidate` function to perform 20 repeats of 5-fold cross-validation to evaluate the performance of an `randomForest` applied to three quantification of our IMC data; cell type proportions, average pairwise distances between cell-types and region proportions.
+Our ClassifyR package, <https://github.com/SydneyBioX/ClassifyR>, formalises a convenient framework for evaluating classification in R. We provide functionality to easily include four key modelling stages; Data transformation, feature selection, classifier training and prediction; into a cross-validation loop. Here we use the `crossValidate` function to perform 5 repeats of 3-fold cross-validation (we typically use 100 repeats of 5-fold cross-validation) to evaluate the performance of an `randomForest` applied to three quantification of our IMC data; cell type proportions, average pairwise distances between cell-types and region proportions.
 
 In particular, we are evaluating the effectiveness of classifying islets from 
 people with recent onset versus long-duration diabetes.
@@ -954,7 +954,7 @@ cv <- crossValidate(
   outcome = outcome,
   classifier = "randomForest",
   nFolds = 3,
-  nRepeats = 10,
+  nRepeats = 5,
   nCores = nCores
 )
 ```
@@ -963,7 +963,7 @@ cv <- crossValidate(
 
 Here, we use the `performancePlot` function to assess the AUC from each repeat of the 3-fold cross-validation. We see that the lisaClust regions appear to capture the least amount of information that is predictive of diabetes progression status of the patients.
 
-```{r}
+```{r, fig.height= 5, fig.width=6}
 # Calculate AUC for each cross-validation repeat and plot.
 performancePlot(cv,
   metric = "AUC",
