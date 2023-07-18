@@ -59,7 +59,7 @@ The following chunk of code will install all of the R packages you need for this
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install(c("STexampleData", "imcdatasets", "scHOT", "simpleSeg", "FuseSOM", "spicyR", "lisaClust", "ClassifyR", "ggplot2", "scater", "scuttle", "batchelor", "patchwork", "plotly"))
+BiocManager::install(c("STexampleData", "imcdatasets", "scHOT", "simpleSeg", "FuseSOM", "spicyR", "lisaClust", "ClassifyR", "ggplot2", "scater", "scuttle", "batchelor", "patchwork", "plotly", "RColorBrewer"))
                      
 ```
 
@@ -95,6 +95,7 @@ suppressPackageStartupMessages({
   library(batchelor)
   library(patchwork)
   library(plotly)
+  library(RColorBrewer)
 })
 
 # We can use the following to increase computational speed.
@@ -728,9 +729,65 @@ signifPlot(spicyTest,
 )
 ```
 
+We can view some of the interesting relationships in images. Lets first identify images with "interesting" relationships between cluster 2 (likely T cells) with cluster 11 (likely islet cells).
+
+```{r}
+
+# Sorry, this code could be made cleaner. This seems like it would be a useful function
+
+# Get outcome data
+df <- colData(imc)[cellsToUse, c("image_name", "patient_stage")]
+df <- unique(df)
+rownames(df) <- df$image_name
+
+# Extract relationship
+df$spatialRelationship <- spicyTest$pairwiseAssoc[["cluster_2__cluster_11"]]
+
+df <- as.data.frame(df)
+
+# Visualise relationships
+p1 <- ggplot(df, aes(x = patient_stage, y = spatialRelationship, label = image_name)) + 
+  geom_violin() + geom_jitter()
+
+p1
+
+
+# Use plotly to look for representative images
+ggplotly(p1)
+
+
+```
+
+
+```{r fig.width=10, fig.height=5}
+
+# Lets ensure that the colours of cell types stay consistent
+celltypes <- unique(imc$clusters)
+cellTypeColour <- brewer.pal(length(celltypes), "Paired") |>
+                    colorRampPalette()
+cellTypeColour <- cellTypeColour(length(celltypes))
+names(cellTypeColour) <- celltypes
+
+
+# Choose which cells to highlight
+imc$highlight <- imc$clusters %in% c("cluster_2", "cluster_11")
+imc$islet <- imc$clusters %in% c("cluster_10", "cluster_11", "cluster_12", "cluster_13")
+
+# Plot two images
+p2 <- plotReducedDim(imc[, imc$image_name == "G17"], "spatialCoords", colour_by = "clusters", size_by = "highlight", shape_by = "islet") + scale_colour_manual(values = cellTypeColour)
+
+p3 <- plotReducedDim(imc[, imc$image_name == "E13"], "spatialCoords", colour_by = "clusters", size_by = "highlight", shape_by = "islet") + scale_colour_manual(values = cellTypeColour)
+
+p2+p3
+
+```
+
+
+
 **Question**
 
 1. Do the results/interpretation change if use Rs = 20 or Rs = 200
+2. Are your conclusions different if you use Damond's cell type annotations?
 
 
 ```{r}
