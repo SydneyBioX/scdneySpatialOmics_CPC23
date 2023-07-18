@@ -4,36 +4,24 @@ Materials for 'Unlocking single cell spatial omics analyses with `scdney`' works
 ## Prerequisites
 
 Before coming to the workshop, you must have the latest version of R installed 
-(or at least version 4.2), paired with your favourite IDE (e.g. 
+(> version 4.3), paired with your favourite IDE (e.g. 
 [RStudio](https://posit.co/download/rstudio-desktop/)) and/or git for 
-downloading the workshop materials. You will also need the latest version of
-Bioconductor installed, you can do this by running:
+downloading the workshop materials. 
+
+
+The following chunk of code will install all of the R packages you need for this workshop and also the data that we'll be analysing. 
 
 ```r
-# if BiocManager not installed
-install.packages("BiocManager")
-BiocManager::install(version = "3.17")
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install(c("STexampleData", "imcdatasets", "scHOT", "simpleSeg", "FuseSOM", "spicyR", "lisaClust", "ClassifyR", "ggplot2", "scater", "scuttle", "batchelor", "patchwork", "plotly"))
+
+imc <- imcdatasets::Damond_2019_Pancreas(data_type = "spe")
+spe <- STexampleData::seqFISH_mouseEmbryo()
+                     
 ```
 
-### Installing `scdney`
-
-`scdney` is a collection of packages developed by researchers at the Sydney 
-Precision Data Science Centre. As a result of the many packages contained in 
-this collection, `scdney` contains several dependencies and can take a while to 
-install, attendees should have installed it prior to the beginning of the 
-workshop.
-
-`scdney` can be installed as follows.
-
-```r
-# if BiocManager or remotes packages are not installed
-install.packages(c("BiocManager","remotes"))
-
-# install scdney
-BiocManager::install("SydneyBioX/scdney")
-# test the installation by loading scdney
-library(scdney)
-```
 
 ### Workshop structure
 
@@ -41,7 +29,7 @@ First, download the files in this Github repository by either cloning the
 repository or by downloading the files directly into a directory on your
 computer.
 
-In the workshop, we will worth through two key examples with datasets. The 
+In the workshop, we will work through two key examples with datasets. The 
 first part will involve examining the data structure and exploratory data 
 analysis. The second part will involve analytical techniques.
 
