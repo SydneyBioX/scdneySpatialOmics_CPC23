@@ -51,7 +51,7 @@ If you use use RStudio, we recommend viewing this document in visual
 mode.
 :::
 
-# Installing required R packages
+## Installing required R packages
 
 The following chunk of code will install all of the R packages you need for this workshop. Please ensure that you do not run it more than once or remove `eval=FALSE` from the code chunk, you do not want to be installing these packages multiple times.
 
@@ -552,7 +552,7 @@ Now that we have assessed genes varying in expression in space, let's look
 further into the IMC data where we will make use of the multiple samples to 
 perform clustering and extract some biological understanding.
 
-## spicyR for the IMC data
+## A very spicy analysis of the IMC data
 
 First, let's select the markers that we'd like to use to cluster the cells. Clustering partitions the data by the largest sources of variation. If there are lots of markers for a specific cell type, this will cluster very well.
 
@@ -594,6 +594,8 @@ useMarkers <- c(
   "CA9" # Carbonic anhydrase IX	Hypoxic	166Er
 ) 
 ```
+
+### Identifying cell types in the data.
 
 **Clustering**
 
@@ -677,6 +679,7 @@ plotReducedDim(imc[, imc$image_name == "E02"], "spatialCoords", colour_by = "clu
 
 ```
 
+
 **Testing Relationships**
 
 Next, we test if there is an association between the proportion of each cell type in our clusters and progression status of disease. To do this, we recommend using a package such as `diffcyt` for testing for changes in abundance of cell types. However, the `colTest` function from `spicyR` allows us to quickly test for associations between the proportions of the cell types and disease status using either Wilcoxon rank sum tests or t-tests. Here we see a couple of p-values less than 0.05.
@@ -694,8 +697,7 @@ testProp <- colTest(imc[, cellsToUse],
 testProp
 ```
 
-
-**spicyR: test spatial relationships**
+### spicyR: testing for changes in spatial relationships between cell types
 
 Our package, spicyR, which can be found on [Bioconductor](https://www.bioconductor.org/packages/devel/bioc/html/spicyR.html), provides a series of functions to aid in the analysis of both immunofluorescence and mass cytometry imaging data as well as other assays that can deeply phenotype individual cells and their spatial location. Here, we use the `spicy` function to test for changes in the spatial relationships between pairwise combinations of cells. We quantify spatial relationships using a combination of three radii `Rs = c(20, 50, 100)` and mildly account for some global tissue structure using `sigma = 50`.
 
@@ -737,7 +739,7 @@ signifPlot(spicyTest,
 ```
 
 
-**lisaClust: Find cellular neighbourhoods**
+### lisaClust: Describing tissue microenvrionments and cellular neighbourhoods.
 
 Our package, lisaClust, which can be found on [Bioconductor](https://www.bioconductor.org/packages/release/bioc/html/lisaClust.html), provides a series of functions to identify and visualise regions of tissue where spatial associations between cell-types is similar. This package can be used to provide a high-level summary of cell-type colocalisation in multiplexed imaging data that has been segmented at a single-cell resolution. Here we use the `lisaClust` function to clusters cells into 5 regions with distinct spatial ordering.
 
@@ -839,7 +841,7 @@ testRegions
 1. Do the conclusions change using more or less regions?
 
 
-## ClassifyR for classification of IMC data
+### Classifying patients with spatial features.
 
 Our ClassifyR package, <https://github.com/SydneyBioX/ClassifyR>, formalises a convenient framework for evaluating classification in R. We provide functionality to easily include four key modelling stages; Data transformation, feature selection, classifier training and prediction; into a cross-validation loop. Here we use the `crossValidate` function to perform 20 repeats of 5-fold cross-validation to evaluate the performance of an `randomForest` applied to three quantification of our IMC data; cell type proportions, average pairwise distances between cell-types and region proportions.
 
