@@ -39,56 +39,74 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE, message = FALSE, warning = FALS
 
 Prior to the workshop, we recommend you start by:
 
--   Having the latest version of R installed (at least 4.2)
+- Having the latest version of R installed (at least 4.3)
 
--   Having the latest version of RStudio installed
+- Having the latest version of RStudio installed
 
--   Installing the `scdney` package, instructions can be found
-    [here](https://sydneybiox.github.io/scdney/).
+-   Installing the `STexampleData`, `imcdatasets`, `scHOT`, `spicyR`, `simpleSeg` and `lisaClust`  packages Bioconductor and associated dependencies
 
--   Installing the `STexampleData` package Bioconductor and associated
-    dependencies
-
--   Installing the `imcdatasets` package from Bioconductor and
-    associated dependencies
-    
--   Installing the `simpleSeg` package from Bioconductor and
-    associated dependencies
 
 ::: {style="background-color:#e6f0ff"}
 If you use use RStudio, we recommend viewing this document in visual
 mode.
 :::
 
+# Installing required R packages
+
+The following chunk of code will install all of the R packages you need for this workshop. Please ensure that you do not run it more than once or remove `eval=FALSE` from the code chunk, you do not want to be installing these packages multiple times.
+
+```{r eval=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install(c("STexampleData", "imcdatasets", "scHOT", "simpleSeg", "FuseSOM", "spicyR", "lisaClust", "ClassifyR", "ggplot2", "scater", "scuttle", "batchelor", "patchwork", "plotly"))
+                     
+```
+
+If you are viewing this Rmd before the workshop, you might also like to download 
+the data that we will use. This can take time.
+
+```{r, eval=FALSE}
+imc <- imcdatasets::Damond_2019_Pancreas(data_type = "spe")
+spe <- STexampleData::seqFISH_mouseEmbryo()
+```
+
+
 # Loading R packages and setting parameters
 
 ```{r}
-1+1
-```
-
-```{r}
 suppressPackageStartupMessages({
-  library(scdney)
+  # Data packages
   library(STexampleData)
   library(imcdatasets)
+  
+  # Packages from scdney
+  library(scHOT)
   library(simpleSeg)
+  library(FuseSOM)
+  library(spicyR)
+  library(lisaClust)
+  library(ClassifyR)
+  
+  # Extra packages needed for workshop
   library(ggplot2)
   library(scater)
   library(scuttle)
   library(batchelor)
   library(patchwork)
   library(plotly)
-  library(FuseSOM)
-  library(spicyR)
-  library(lisaClust)
-  library(ClassifyR)
 })
 
-nCores <- 1
+# We can use the following to increase computational speed.
+# If you feel confident in the amount of CPU cores and/or memory that you have 
+# access to, feel free to increase nCores.
+
+nCores <- 1 
 BPPARAM <- simpleSeg:::generateBPParam(nCores)
 
+# The following will improve the aesthetics of some of the plots that we will
+# generate.
 theme_set(theme_classic())
-
 source("data/celltype_colours.R")
 ```
 
@@ -132,7 +150,7 @@ Here we download the seqFISH mouse embryo data. This is a `SpatialExperiment`
 object, which extends the `SingleCellExperiment` object.
 
 ```{r}
-spe = STexampleData::seqFISH_mouseEmbryo()
+spe <- STexampleData::seqFISH_mouseEmbryo()
 spe
 ```
 
@@ -142,7 +160,7 @@ coordinates by a matrix to flip the y-axis and ensure we fix the aspect ratio.
 
 ```{r}
 spe <- logNormCounts(spe)
-coord_transform = matrix(c(1,0,0,-1), 2, 2, byrow = TRUE)
+coord_transform <- matrix(c(1,0,0,-1), 2, 2, byrow = TRUE)
 reducedDim(spe, "spatialCoords") <- spatialCoords(spe) %*% coord_transform
 plotReducedDim(spe, "spatialCoords", colour_by = c("Sox2"), point_size = 1) +
   coord_fixed()
@@ -157,7 +175,7 @@ plotReducedDim(spe, "spatialCoords", colour_by = c("Sox2"), point_size = 1) +
 ```{r}
 # try to answer the above question using the spe object. 
 # you may want to check the SingleCellExperiment vignette.
-# https://bioconductor.org/packages/3.16/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html
+# https://bioconductor.org/packages/3.17/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html
 
 
 ```
@@ -172,22 +190,22 @@ Dimensionality reduction using PCA, batch correction across tiles using the
 ```{r}
 spe <- runPCA(spe)
 
-b.out = batchelor::batchCorrect(spe, batch = spe$pos, assay.type = "logcounts", PARAM=FastMnnParam(d=20))
+b.out <- batchelor::batchCorrect(spe, batch = spe$pos, assay.type = "logcounts", PARAM=FastMnnParam(d=20))
 reducedDim(spe, "FastMnn") <- reducedDim(b.out, "corrected")
 spe <- runUMAP(spe, dimred = "FastMnn")
 spe
 
-g_celltype_umap = plotReducedDim(spe, "UMAP", colour_by = "celltype_mapped_refined") + 
+g_celltype_umap <- plotReducedDim(spe, "UMAP", colour_by = "celltype_mapped_refined") + 
   scale_colour_manual(values = celltype_colours)
 g_celltype_umap
 
 plotReducedDim(spe, "UMAP", colour_by = "Sox2")
 
-g_celltype_spatial = plotReducedDim(spe, "spatialCoords", colour_by = "celltype_mapped_refined") + 
+g_celltype_spatial <- plotReducedDim(spe, "spatialCoords", colour_by = "celltype_mapped_refined") + 
   scale_colour_manual(values = celltype_colours) + 
   coord_fixed()
 
-g_all = g_celltype_spatial + theme(legend.position = "none") + g_celltype_umap
+g_all <- g_celltype_spatial + theme(legend.position = "none") + g_celltype_umap
 g_all
 ```
 
@@ -231,7 +249,7 @@ imc
 ```{r}
 # try to answer the above question using the imc object. 
 # you may want to check the SingleCellExperiment vignette.
-# https://bioconductor.org/packages/3.16/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html
+# https://www.bioconductor.org/packages/release/bioc/vignettes/SpatialExperiment/inst/doc/SpatialExperiment.html
 
 
 ```
@@ -300,15 +318,17 @@ We can transform and normalise our data using the `normalizeCells` function. Her
 ```{r, fig.width=5, fig.height=5}
 # Transform and normalise the marker expression of each cell type.
 # Use a square root transform, then trimmed the 99 quantile
-imc <- normalizeCells(imc,
+imc <- simpleSeg::normalizeCells(imc,
   transformation = "asinh",
   method = c("trim99", "mean", "PC1"),
   assayIn = "counts",
   cores = nCores,
   imageID = "image_name"
 )
+
 # Extract normalised marker information.
 df <- as.data.frame(cbind(colData(imc), t(assay(imc, "norm"))))
+
 # Plots densities of normalised PanKRT for each image.
 ggplot(df, aes(x = SMA, colour = image_name)) +
   geom_density() +
@@ -317,7 +337,7 @@ ggplot(df, aes(x = SMA, colour = image_name)) +
 
 **Questions**
 
-1.  Do different normalisation methods (e.g., 'mean', 'minMax', 'trim99', 'PC1') looks different?
+1.  Do different normalisation methods (e.g., 'mean', 'minMax', 'trim99', 'PC1') or transforms (sqrt) look different?
 2.  What about different markers?
 
 ```{r}
@@ -329,6 +349,7 @@ At this point you should have a sense of the data structure and feel confident
 in generating visualisations and finding information on how to perform other
 kinds of explorations. Time for a few minutes to stand up and stretch and get 
 ready for Part 2.
+
 
 # Part 2: Analytical techniques
 
@@ -344,7 +365,7 @@ developing brain so we will first subset the cells using the spatial
 coordinates. We can check what we have selected by plotting.
 
 ```{r}
-spe$gutRegion = spe$celltype_mapped_refined == "Gut tube" &
+spe$gutRegion <- spe$celltype_mapped_refined == "Gut tube" &
   reducedDim(spe, "spatialCoords")[,1] < -0.5
 
 plotReducedDim(spe, "spatialCoords", colour_by = "gutRegion") + 
@@ -355,7 +376,7 @@ plotReducedDim(spe, "spatialCoords", colour_by = "gutRegion") +
 Let's subset the data to only these cells and continue with our scHOT analysis.
 
 ```{r}
-spe_gut = spe[,spe$gutRegion]
+spe_gut <- spe[,spe$gutRegion]
 spe_gut
 ```
 
@@ -365,8 +386,9 @@ and create the `scHOT` object.
 ```{r}
 hist(rowMeans(counts(spe_gut)>0), 40)
 
-gene_to_test = as.matrix(c(rownames(spe_gut[rowMeans(counts(spe_gut)>0) > 0.2,])))
+gene_to_test <- as.matrix(c(rownames(spe_gut[rowMeans(counts(spe_gut)>0) > 0.2,])))
 length(gene_to_test)
+
 rownames(gene_to_test) <- apply(gene_to_test, 1, paste0, collapse = "_")
 head(gene_to_test)
 
@@ -399,11 +421,13 @@ parameter.
 
 ```{r}
 cellID = 10
-ggplot(cbind(as.data.frame(colData(scHOT_spatial)),
-             W = slot(scHOT_spatial, "weightMatrix")[cellID,]),
+
+df <- cbind(as.data.frame(colData(scHOT_spatial)),
+      W = slot(scHOT_spatial, "weightMatrix")[cellID,])
+
+ggplot(df,
        aes(x = x_global_affine, y = -y_global_affine)) +
-  geom_point(aes(colour = W,
-                 size = W)) +
+  geom_point(aes(colour = W, size = W)) +
   scale_colour_gradient(low = "black", high = "purple") +
   scale_size_continuous(range = c(0.5,2.5)) +
   theme_classic() +
@@ -444,7 +468,7 @@ genes may have different distributions so we turn to
 permutation testing to assess statistical significance.
 
 ```{r}
-g = ggplot(as.data.frame(scHOT_spatial@scHOT_output), 
+g <- ggplot(as.data.frame(scHOT_spatial@scHOT_output), 
            aes(x = globalHigherOrderFunction, y = higherOrderStatistic, label = gene_1)) + 
   xlab("Mean across all cells") +
   ylab("scHOT statistic for local weightedMean") +
@@ -468,6 +492,7 @@ scHOT_spatial <- scHOT_performPermutationTest(
     scHOT_spatial,
     verbose = TRUE,
     parallel = FALSE)
+
 slot(scHOT_spatial, "scHOT_output")
 ```
 
@@ -486,18 +511,21 @@ We can now examine the spatial expression of the 5 most significant genes,
 both in our scHOT object and over our original spe object.
 
 ```{r}
-output_sorted = slot(scHOT_spatial, "scHOT_output")[order(slot(scHOT_spatial, "scHOT_output")$pvalEstimated),]
-topgenes = rownames(output_sorted)[1:5]
+output_sorted <- slot(scHOT_spatial, "scHOT_output")[order(slot(scHOT_spatial,
+                                                                "scHOT_output")$pvalEstimated),]
+topgenes <- rownames(output_sorted)[1:5]
 
 reducedDim(scHOT_spatial, "spatialCoords") <- reducedDim(spe, "spatialCoords")[colnames(scHOT_spatial),]
 
 for (topgene in topgenes) {
-  g_spe = plotReducedDim(spe, "spatialCoords", colour_by = c(topgene), point_size = 1) +
+  g_spe <- plotReducedDim(spe, "spatialCoords", colour_by = c(topgene), point_size = 1) +
     coord_fixed()
-  g_scHOT = plotReducedDim(scHOT_spatial, "spatialCoords", colour_by = c(topgene), point_size = 1,
+  
+  g_scHOT <- plotReducedDim(scHOT_spatial, "spatialCoords", colour_by = c(topgene), point_size = 1,
                            by_exprs_values = "expression") +
     coord_fixed()
-  g_all = g_scHOT + g_spe
+  
+  g_all <- g_scHOT + g_spe
   print(g_all)
 }
 ```
@@ -583,7 +611,7 @@ imc <- runFuseSOM(imc,
 
 **Clusters Selection**
 
-We can check to see how reasonable our choice of 13 clusters is using the `estimateNumCluster` and the `optiPlot` functions. Here we examine the Gap method, others such as Silhouette and Within Cluster Distance are also available.
+We can check to see how reasonable our choice of 13 clusters is using the `estimateNumCluster` and the `optiPlot` functions. Here we examine the Gap method, others such as jump, silhouette and within cluster distance are also available.
 
 ```{r}
 imc <- estimateNumCluster(imc, kSeq = 2:30)
@@ -603,7 +631,8 @@ scater::plotGroupedHeatmap(imc,
   center = TRUE,
   scale = TRUE,
   zlim = c(-3, 3),
-  cluster_rows = FALSE
+  cluster_rows = FALSE,
+  block = "clusters" #block is needed because of a current bug in the function.
 )
 ```
 
@@ -613,6 +642,7 @@ Damond et al. define their cell types using a stepwise clustering procedure with
 regionMap(imc, cellType = "clusters", region = "cell_type") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
+
 
 **Checking Cluster Frequencies**
 
@@ -630,13 +660,11 @@ colData(imc)$clusters |>
 Look at the distribution of cells types in an image
 
 ```{r}
-# Extract cell information and filter to specific image.
-df <- cbind(colData(imc), spatialCoords(imc)) |>
-  as.data.frame() |>
-  filter(image_name == "E02")
-# Colour cells by their region.
-ggplot(df, aes(x = cell_x, y = cell_y, colour = clusters)) +
-  geom_point()
+
+reducedDim(imc, "spatialCoords") <- spatialCoords(imc)
+
+plotReducedDim(imc[, imc$image_name == "E02"], "spatialCoords", colour_by = "clusters")
+
 ```
 
 **Questions**
@@ -656,6 +684,7 @@ Next, we test if there is an association between the proportion of each cell typ
 ```{r}
 # Select cells which belong to Non-diabetic individuals and those with recent onset diabetes.
 cellsToUse <- imc$patient_stage %in% c("Non-diabetic", "Onset")
+
 # Perform simple t tests on the columns of the proportion matrix.
 testProp <- colTest(imc[, cellsToUse],
   condition = "patient_stage",
@@ -664,6 +693,7 @@ testProp <- colTest(imc[, cellsToUse],
 )
 testProp
 ```
+
 
 **spicyR: test spatial relationships**
 
@@ -683,6 +713,7 @@ spicyTest <- spicy(imc[, cellsToUse],
   sigma = 50,
   BPPARAM = BPPARAM
 )
+
 topPairs(spicyTest, n = 10)
 ```
 
@@ -705,12 +736,14 @@ signifPlot(spicyTest,
 
 ```
 
+
 **lisaClust: Find cellular neighbourhoods**
 
 Our package, lisaClust, which can be found on [Bioconductor](https://www.bioconductor.org/packages/release/bioc/html/lisaClust.html), provides a series of functions to identify and visualise regions of tissue where spatial associations between cell-types is similar. This package can be used to provide a high-level summary of cell-type colocalisation in multiplexed imaging data that has been segmented at a single-cell resolution. Here we use the `lisaClust` function to clusters cells into 5 regions with distinct spatial ordering.
 
 ```{r}
 set.seed(51773)
+
 # Cluster cells into spatial regions with similar composition.
 imc <- lisaClust(imc,
   k = 5,
@@ -737,13 +770,9 @@ regionMap(imc, cellType = "clusters", limit = c(0.2, 5))
 By default, these identified regions are stored in the `regions` column in the `colData` of our object. We can quickly examine the spatial arrangement of these regions using `ggplot`.
 
 ```{r}
-# Extract cell information and filter to specific image.
-df <- cbind(colData(imc), spatialCoords(imc)) |>
-  as.data.frame() |>
-  filter(image_name == "E02")
-# Colour cells by their region.
-ggplot(df, aes(x = cell_x, y = cell_y, colour = region)) +
-  geom_point()
+
+plotReducedDim(imc[, imc$image_name == "E02"], "spatialCoords", colour_by = "region")
+
 ```
 
 While much slower, we have also implemented a function for overlaying the region information as a hatching pattern so that the information can be viewed simultaneously with the cell type calls.
@@ -794,12 +823,14 @@ ggplot(df, aes(x = region, y = proportion, colour = patient_stage)) +
 ```{r}
 # Select cells which belong to Non-diabetic individuals and those with recent onset diabetes.
 cellsToUse <- imc$patient_stage %in% c("Non-diabetic", "Onset")
+
 # Perform simple t tests on the columns of the proportion matrix.
 testRegions <- colTest(imc[, cellsToUse],
   condition = "patient_stage",
   feature = "region",
   imageID = "image_name"
 )
+
 testRegions
 ```
 
@@ -807,18 +838,21 @@ testRegions
 
 1. Do the conclusions change using more or less regions?
 
+
 ## ClassifyR for classification of IMC data
 
 Our ClassifyR package, <https://github.com/SydneyBioX/ClassifyR>, formalises a convenient framework for evaluating classification in R. We provide functionality to easily include four key modelling stages; Data transformation, feature selection, classifier training and prediction; into a cross-validation loop. Here we use the `crossValidate` function to perform 20 repeats of 5-fold cross-validation to evaluate the performance of an `randomForest` applied to three quantification of our IMC data; cell type proportions, average pairwise distances between cell-types and region proportions.
 
 In particular, we are evaluating the effectiveness of classifying islets from 
-people with reent onset versus long-duration diabetes.
+people with recent onset versus long-duration diabetes.
 
 ```{r message=FALSE}
 # Create list to store data.frames
 data <- list()
+
 # Add proportions of each cell type in each image
 data[["props"]] <- getProp(imc, feature = "clusters", imageID = "image_name")
+
 # Add pairwise associations
 data[["dist"]] <- getPairwise(imc,
   spatialCoords = c("cell_x", "cell_y"),
@@ -829,7 +863,6 @@ data[["dist"]] <- getPairwise(imc,
   BPPARAM = BPPARAM
 )
 
-data[["dist"]] <- as.data.frame(data[["dist"]])
 
 # Add proportions of each region in each image
 # to the list of dataframes.
@@ -851,6 +884,7 @@ measurements <- lapply(data, function(x) x[names(outcome), ])
 
 # Set seed
 set.seed(51773)
+
 # Perform cross-validation of a randomForest model
 # for timing reasons we select a scheme
 # with 10 repeats of 3-fold cross-validation.
@@ -866,12 +900,12 @@ cv <- crossValidate(
 
 **Visualise cross-validated prediction performance**
 
-Here, we use the `performancePlot` function to assess the AUC from each repeat of the 5-fold cross-validation. We see that the lisaClust regions appear to capture the least amount of information that is predictive of diabetes progression status of the patients.
+Here, we use the `performancePlot` function to assess the AUC from each repeat of the 3-fold cross-validation. We see that the lisaClust regions appear to capture the least amount of information that is predictive of diabetes progression status of the patients.
 
 ```{r}
 # Calculate AUC for each cross-validation repeat and plot.
 performancePlot(cv,
-  performanceName = "AUC",
+  metric = "AUC",
   characteristicsList = list(x = "Assay Name")
 )
 ```
