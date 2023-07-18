@@ -5,16 +5,19 @@ params:
 author:
 - name: Shila Ghazanfar
   affiliation:  
+  - Sydney Precision Data Science Centre, University of Sydney, Australia; 
   - School of Mathematics and Statistics, University of Sydney, Australia; 
   - Charles Perkins Centre, University of Sydney, Australia
 - name: Nicholas Robertson
   affiliation:
+  - Sydney Precision Data Science Centre, University of Sydney, Australia; 
   - School of Mathematics and Statistics, University of Sydney, Australia
 - name: Ellis Patrick
   affiliation:
+  - Sydney Precision Data Science Centre, University of Sydney, Australia; 
   - &WIMR Westmead Institute for Medical Research, University of Sydney, Australia; 
   - School of Mathematics and Statistics, University of Sydney, Australia
-date: 21 November, 2022
+date: 19 July, 2023
 output:
   html_document:
     css: style.css
@@ -44,7 +47,6 @@ Prior to the workshop, we recommend you start by:
 - Having the latest version of RStudio installed
 
 -   Installing the `STexampleData`, `imcdatasets`, `scHOT`, `spicyR`, `simpleSeg` and `lisaClust`  packages Bioconductor and associated dependencies
-
 
 ::: {style="background-color:#e6f0ff"}
 If you use use RStudio, we recommend viewing this document in visual
