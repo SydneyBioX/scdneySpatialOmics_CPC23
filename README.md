@@ -1,5 +1,5 @@
 # Unlocking single cell spatial omics analyses with `scdney`
-Materials for 'Unlocking single cell spatial omics analyses with `scdney`' workshop presented at the [Charles Perkins Centre in July 2023]([https://bis.amsi.org.au/program/](https://www.eventbrite.com/e/unlocking-single-cell-spatial-omics-analyses-with-scdney-tickets-651289032027)).
+Materials for 'Unlocking single cell spatial omics analyses with `scdney`' workshop presented at the [Charles Perkins Centre in July 2023](https://www.eventbrite.com/e/unlocking-single-cell-spatial-omics-analyses-with-scdney-tickets-651289032027).
 
 ## Prerequisites
 
