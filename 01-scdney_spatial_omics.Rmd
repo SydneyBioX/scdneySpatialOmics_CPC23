@@ -63,6 +63,10 @@ mode.
 # Loading R packages and setting parameters
 
 ```{r}
+1+1
+```
+
+```{r}
 suppressPackageStartupMessages({
   library(scdney)
   library(STexampleData)

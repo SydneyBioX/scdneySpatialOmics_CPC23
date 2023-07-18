@@ -12,7 +12,7 @@ Bioconductor installed, you can do this by running:
 ```r
 # if BiocManager not installed
 install.packages("BiocManager")
-BiocManager::install(version = "3.16")
+BiocManager::install(version = "3.17")
 ```
 
 ### Installing `scdney`
@@ -44,31 +44,6 @@ computer.
 In the workshop, we will worth through two key examples with datasets. The 
 first part will involve examining the data structure and exploratory data 
 analysis. The second part will involve analytical techniques.
-
-### Dev container option
-
-If you were unable to install any packages before the workshop but happen to 
-have Docker installed, it may be quicker to use a VS Code dev container to get
-started.
-
-1. Clone the repo and run the following.
-    ```bash
-    docker build -t scdney_image .
-    ```
-    While this is running (should take >10 mins), install VS Code, and its R 
-    and dev container extension.
-
-2. Run and start the image that docker has built.
-
-    ```bash
-    docker run -d --name scdney_container scdney_image
-    docker start scdney_container
-    ```
-
-    Now you should have a container with the `scdney` environment installed.  
-3. Open VS Code and open a folder inside the container.
-
-You are now ready to start running the workshop!
 
 ### Contact
 
